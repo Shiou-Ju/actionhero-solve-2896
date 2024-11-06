@@ -9,6 +9,7 @@ import * as formidable from "formidable";
 import * as Mime from "mime";
 import * as uuid from "uuid";
 import * as etag from "etag";
+import * as net from "net";
 import { BrowserFingerprint } from "browser_fingerprint";
 import { api, config, utils, Server, Connection } from "../index";
 import { ActionsStatus, ActionProcessor } from "../classes/actionProcessor";
@@ -930,13 +931,16 @@ export class WebServer extends Server {
       .replace(/\(/g, "");
   }
 
-  private async checkPortBeingUsed(port: number, host: string) {
+  private async checkPortBeingUsed(
+    port: number,
+    host: string,
+  ): Promise<boolean> {
     if (isNaN(port)) {
       throw new Error(`Invalid port number: ${port}`);
     }
 
     return new Promise((resolve) => {
-      const tester = require("net")
+      const tester = net
         .createServer()
         .once("error", () => resolve(false))
         .once("listening", () => {

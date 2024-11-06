@@ -1,14 +1,3 @@
-// TODO: test this file only
-// 在這以前目前的測試結果顯示所有測試都已經通過，共有 504 個測試，其中 499 個已經通過，4 個被跳過，1 個標記為待完成。
-// 在這以前目前的測試結果顯示所有測試都已經通過，共有 504 個測試，其中 499 個已經通過，4 個被跳過，1 個標記為待完成。
-// Test Suites: 51 passed, 51 total
-// Tests:       4 skipped, 1 todo, 499 passed, 504 total
-
-// 但是，最近的測試結果顯示有一個測試失敗，該測試是 Action: status › returns node status，失敗的原因是預期的問題列表長度為 0，但實際上收到了長度為 1 的列表，列表中包含了一個問題 "Using more than 500 MB of RAM/HEAP"。
-
-// after newly added port check
-// Test Suites: 52 passed, 52 total
-// Tests:       4 skipped, 1 todo, 504 passed, 509 total
 import { Process, api } from "../../../src/index";
 import * as net from "net";
 
@@ -130,7 +119,6 @@ describe("Server: Web Port Check", () => {
     jest.resetModules();
     jest.mock("./../../../src/config/web.ts", () => createWebConfig(testPort));
 
-    // 專門佔用 IPv6 端口
     serverIPv6 = net.createServer();
     await new Promise<void>((resolve) => {
       serverIPv6.listen(testPort, "::", () => resolve());
