@@ -78,7 +78,66 @@ export class WebServer extends Server {
   }
 
   async start() {
+    const port = parseInt(this.config.port);
+
     let bootAttempts = 0;
+
+    // FIXME: check ipv4 first
+    // cause tcp46 will not collide with tcp4
+    // maybe add a warning here? not simply throw erro
+
+    // 我要怎麼做到，可以讓他先檢查 ivp4 ipv6 有任何東西在使用呢？  還是 http createserver 預設就是 tcp4 vs. tcp46 是不一樣的東西？
+
+    async function checkPortBeingUsed(port: number, host: string) {
+      if (isNaN(port)) {
+        throw new Error(`Invalid port number: ${port}`);
+      }
+
+      return new Promise((resolve) => {
+        const tester = require("net")
+          .createServer()
+          .once("error", () => resolve(false))
+          .once("listening", () => {
+            tester.once("close", () => resolve(true)).close();
+          })
+          .listen(port, host);
+      });
+    }
+
+    const isIPV6PortAvailable = await checkPortBeingUsed(port, "::");
+
+    const isIPV4PortAvailable = await checkPortBeingUsed(port, "0.0.0.0");
+
+    if (!isIPV6PortAvailable) {
+      throw new Error(`IPv6 port ${port} is already in use`);
+    }
+
+    if (!isIPV4PortAvailable) {
+      throw new Error(`IPv4 port ${port} is already in use`);
+    }
+
+    // use this kind to warn
+    //    if (api.actions.actions[action.name][action.version] && !reload) {
+    // log(
+    //     `an existing action with the same name \`${action.name}\` will be overridden by the file ${fullFilePath}`,
+    //     "warning",
+    //   );
+    // }
+
+    // if (!isIPV4PortAvailable) {
+    //     this.log(`port ${this.config.port} is being used by ipv4`, "warning");
+    // }
+
+    // if (!isIPV6PortAvailable) {
+    //     this.log(`port ${this.config.port} is being used by ipv6`, "warning");
+    // }
+
+    // // 如果任一 port 不可用，直接觸發 error event
+    // if (!isIPV4PortAvailable || !isIPV6PortAvailable) {
+    //   this.server.emit("error", new Error(`Port ${this.config.port} is already in use`));
+    //   return;
+    // }
+
     if (this.config.secure === false) {
       this.server = http.createServer((req, res) => {
         this.handleRequest(req, res);
